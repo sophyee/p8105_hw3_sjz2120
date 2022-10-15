@@ -31,7 +31,7 @@ scale_fill_discrete = scale_fill_viridis_d
 # Problem 1
 This problem uses the Instacart data. DO NOT include this dataset in your local data directory; instead, load the data from the `p8105.datasets` using:
 
-```{r, "Loading in Instacart dataset"}
+```{r Loading_in_Instacart_data}
 library(p8105.datasets)
 data("instacart")
 
@@ -55,7 +55,7 @@ In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` 
 
 **There are 134 aisles in total, with most items ordered from the fresh vegetables aisle followed closely by the fresh fruits aisle.**
 
-```{r}
+```{r Counting_aisles}
 instacart %>% 
   count(aisle) %>% 
   arrange(desc(n))
@@ -64,7 +64,7 @@ instacart %>%
 ### Plotting the number of items ordered in each aisle
 
 This plot shows the number of items ordered in each aisle, limited to aisles with more than 10000 items ordered. Aisles are arranged in ascending order of the number of items ordered in that aisle:
-```{r}
+```{r Plotting_aisle_items}
 instacart %>% 
   count(aisle) %>% 
   filter(n > 10000) %>% 
@@ -79,7 +79,7 @@ instacart %>%
 ### Table of most popular items from aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 
 This table shows the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. The number of times each item is ordered is also included in this table, and the rows are ordered by descending number of times each item is ordered.
-```{r}
+```{r Table_of_items_ordered}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
   group_by(aisle) %>% 
@@ -93,7 +93,7 @@ instacart %>%
 ### Table of average hours of the day when Pink Lady Apples and Coffee Ice Cream are ordered, on each day of the week
 
 * This final table shows the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week, formatted as a 2x7 table.
-```{r}
+```{r Table_mean_hours}
 instacart %>%
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
   group_by(product_name, order_dow) %>%
@@ -113,7 +113,7 @@ This problem uses five weeks of accelerometer data collected on a 63 year-old ma
 ### Loading, tidying, and wrangling the accelerometer dataset `accel_data`
 Loading, tidying, and otherwise wrangleingthe data. The final dataset `accel_data` includes all originally observed variables and values; has useful variable names; includes a weekday vs weekend variable; and encodes data with reasonable variable classes.
 
-```{r, "Load, tidy, and wrangle Problem 2 Accelerometer data"}
+```{r, Load_Problem2_accelerometer_data"}
 accel_data =
   read_csv(file = "./data/accel_data.csv") %>% #Read in csv file
   janitor::clean_names() %>% #Basic clean of dataset
@@ -138,7 +138,7 @@ All of these variables are doubles, with the exception of the `day` and `type_of
 
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
-```{r, "Table with aggregated daily total accelerometer activity"}
+```{r, Table_of_aggregated_daily_accel_activity"}
 accel_data %>%
   mutate(daily_activity = rowSums(accel_data[ , c(5:1444)], na.rm = TRUE)) %>%
   select(week, day_id, day, type_of_day, daily_activity) %>%
@@ -176,7 +176,7 @@ ggplot(accel_pivot_data, aes(x = hour, y = activity_level, color = day)) +
 # Problem 3
 This problem uses the NY NOAA data. DO NOT include this dataset in your local data directory; instead, load the data from the `p8105.datasets` package using:
 
-```{r, "Loading in Problem 3 dataset"}
+```{r Loading_in_Problem3_dataset_noaa"}
 library(p8105.datasets)
 data("ny_noaa")
 
@@ -213,7 +213,24 @@ Some of the rows/observations have missing values. In fact, let's see how many m
 
 ### Data cleaning the NY NOAA (`noaa`) dataset
 
-Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+Do some data cleaning. First we create separate variables for year, month, and dayf. We also ensure that observations for temperature, precipitation, and snowfall are given in reasonable units by multiplying the values for the temperature variables by 10 (changing from tenths of degree Celsius to degrees Celcius), and by dividing the values for precipitation and snowfall by 10 (changing from mm to cm).
+
+```{r}
+noaa = noaa %>%
+  janitor::clean_names() %>%
+  mutate(year = lubridate::year(date), month = lubridate::month(date, label = TRUE, abbr = FALSE),  day = lubridate::day(date)) %>% # Creating separate variables for year, month, and day
+  mutate(prcp = prcp/10, snow = snow/10, snwd = snwd/10, tmax = 10*as.numeric(tmax), tmin = 10*as.numeric(tmin)) %>% # Ensuring reasonable units for the weather data variables
+  select(id, date, year, month, day, everything()) # Rearranging variable order so the weather data variables come last
+
+noaa
+```
+
+```{r Finding_most_common_snowfall}
+snow_count <- noaa %>% count(snow) %>% arrange(desc(n))
+snow_count$snow[1]
+```
+**For snowfall, the most commonly observed values seem to be `r snow_count$snow[1]`, probably because there are many weather station locations where it doesn't snow at all (basically, anywhere where the climate is mild/warm year-round or doesn't support snowfall).**
+
 
 
 ### Two-panel plot of average max temperature in January and July, in each station across years (`noaa` dataset)
