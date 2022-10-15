@@ -49,15 +49,21 @@ Key variables include identifiers for each user, order, and product; the order i
 In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
 
 
+### Most popular aisles
+
 * How many aisles are there, and which aisles are the most items ordered from?
+
+**There are 134 aisles in total, with most items ordered from the fresh vegetables aisle followed closely by the fresh fruits aisle.**
+
 ```{r}
 instacart %>% 
   count(aisle) %>% 
   arrange(desc(n))
 ```
-*There are 134 aisles in total, with most items ordered from the fresh vegetables aisle followed closely by the fresh fruits aisle.*
 
-* This plot shows the number of items ordered in each aisle, limited to aisles with more than 10000 items ordered. Aisles are arranged in ascending order of the number of items ordered in that aisle:
+### Plotting the number of items ordered in each aisle
+
+This plot shows the number of items ordered in each aisle, limited to aisles with more than 10000 items ordered. Aisles are arranged in ascending order of the number of items ordered in that aisle:
 ```{r}
 instacart %>% 
   count(aisle) %>% 
@@ -70,7 +76,9 @@ instacart %>%
 ```
 
 
-* This table shows the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. The number of times each item is ordered is also included in this table, and the rows are ordered by descending number of times each item is ordered.
+### Table of most popular items from aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+
+This table shows the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. The number of times each item is ordered is also included in this table, and the rows are ordered by descending number of times each item is ordered.
 ```{r}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
@@ -82,6 +90,7 @@ instacart %>%
   knitr::kable()
 ```
 
+### Table of average hours of the day when Pink Lady Apples and Coffee Ice Cream are ordered, on each day of the week
 
 * This final table shows the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week, formatted as a 2x7 table.
 ```{r}
@@ -98,10 +107,11 @@ instacart %>%
 # Problem 2
 Accelerometers have become an appealing alternative to self-report techniques for studying physical activity in observational studies and clinical trials, largely because of their relative objectivity. During observation periods, the devices measure “activity counts” in a short period; one-minute intervals are common. Because accelerometers can be worn comfortably and unobtrusively, they produce around-the-clock observations.
 
-This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). *In this spreadsheet, variables activity.* are the activity counts for each minute of a 24-hour day starting at midnight.
+This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). In this spreadsheet, variables activity. are the activity counts for each minute of a 24-hour day starting at midnight.
 
 
-* Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+### Loading, tidying, and wrangling the accelerometer dataset `accel_data`
+Loading, tidying, and otherwise wrangleingthe data. The final dataset `accel_data` includes all originally observed variables and values; has useful variable names; includes a weekday vs weekend variable; and encodes data with reasonable variable classes.
 
 ```{r, "Load, tidy, and wrangle Problem 2 Accelerometer data"}
 accel_data =
@@ -113,16 +123,20 @@ accel_data =
   select(week, day_id, day, type_of_day, everything()) #Reorganize columns so minute_* are at the end
 ```
 
-The cleaned and tidied dataset accel_data contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single day of accelerometer data (for each minute) for the subject. There are a total of 5 weeks of data, with 7 days of data per week for a total of `r nrow(accel_data)` total days (observations) with accelerometer data for each minute of the day.
+### Describing the cleaned & wrangled `accel_data` dataset
 
-Key variables include `week` (the week during which the row data was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend(.
+The cleaned and tidied dataset `accel_data` contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single day of accelerometer data (for each minute) for the subject. There are a total of 5 weeks of data, with 7 days of data per week for a total of `r nrow(accel_data)` total days (days when accelerometer observations occured), with accelerometer data for each minute of the day.
+
+Key variables include `week` (the week during which the row data was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend).
 
 Other key variables include `minute_*` (renamed from `activity_*`) and ranging from `minute_1` to `minute_1440`. The variables `minute_*` are the activity counts for each minute of a 24-hour day starting at midnight, hence why there are a total of 1440 `minute_*` variables (because there are 1440 minutes in a day).
 
 All of these variables are doubles, with the exception of the `day` and `type_of_day` variables which are character variable types.
 
 
-* Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+### Table aggregating total daily activity per each day (`accel_data`)
+
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
 ```{r, "Table with aggregated daily total accelerometer activity"}
 accel_data %>%
@@ -131,8 +145,30 @@ accel_data %>%
   knitr::kable()
 ```
 
+**There don't seem to be any noticeable trends in the aggregated amount of daily activity (`daily_activity`). However, there do seem to be a few days (without any noticeable patterns as to which days, except for the two Saturdays in weeks 4 and 5) where daily activity is significantly lower compared to other days.**
 
-* Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+### Single-panel plot with 24-hour activity time courses for each day (`accel_data`)
+
+Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+```{r}
+accel_pivot_data = 
+  pivot_longer(
+    accel_data, 
+    minute_1:minute_1440,
+    names_to = "minute", 
+    names_prefix = "minute_",
+    values_to = "activity_level") %>% #Create new dataframe from accel_data that has activity_level as it's own variable
+  mutate(hour = as.numeric(minute)/60)
+
+
+daily_activity_plot =
+  ggplot(accel_pivot_data, aes(x = hour, y = activity_level, group = interaction(day_id, day), color = day)) +
+  geom_smooth(se = FALSE)
+
+
+```
 
 
 
@@ -144,15 +180,32 @@ library(p8105.datasets)
 data("ny_noaa")
 
 noaa = 
-  noaa %>% 
-  as_tibble(noaa)
+  ny_noaa %>% 
+  as_tibble(ny_noaa)
 ```
 
 
+### Describing the NY NOAA (`noaa`) dataset
 
 The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
 
-* Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
-* Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
-* Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+### Data cleaning the NY NOAA (`noaa`) dataset
+
+Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+
+
+### Two-panel plot of average max temperature in January and July, in each station across years (`noaa` dataset)
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+
+### Two-panel plot of tmax and tmin (`noaa` dataset)
+
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option)
+
+
+### Two-panel plot of snowfall distribution, separately by year (`noaa` dataset)
+
+Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
