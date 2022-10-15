@@ -113,11 +113,13 @@ accel_data =
   select(week, day_id, day, type_of_day, everything()) #Reorganize columns so minute_* are at the end
 ```
 
-The dataset accel_data contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single product from an instacart order.
+The cleaned and tidied dataset accel_data contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single day of accelerometer data (for each minute) for the subject. There are a total of 5 weeks of data, with 7 days of data per week for a total of `r nrow(accel_data)` total days (observations) with accelerometer data for each minute of the day.
 
-Key variables include identifiers for each user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, as well as number of days since prior order. There are also several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether or not the item has been ordered by the specific  user in the past.
+Key variables include `week` (the week during which the row data was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend(.
 
-In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
+Other key variables include `minute_*` (renamed from `activity_*`) and ranging from `minute_1` to `minute_1440`. The variables `minute_*` are the activity counts for each minute of a 24-hour day starting at midnight, hence why there are a total of 1440 `minute_*` variables (because there are 1440 minutes in a day).
+
+All of these variables are doubles, with the exception of the `day` and `type_of_day` variables which are character variable types.
 
 
 * Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
