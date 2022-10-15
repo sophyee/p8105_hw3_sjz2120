@@ -4,3 +4,6 @@ author: "Sophie Zhang (sjz2120)"
 date: "2022-10-09"
 output: github_document
 ---
+
+* Problem 1
+
