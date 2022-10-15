@@ -42,7 +42,7 @@ instacart =
 
 ### Describing the Instacart dataset
 
-This dataset contains a total of `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order.
+This dataset contains a total of `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row representing a single product from an instacart order.
 
 Key variables include identifiers for each user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, as well as number of days since prior order. There are also several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether or not the item has been ordered by the specific  user in the past.
 
@@ -102,6 +102,7 @@ This problem uses five weeks of accelerometer data collected on a 63 year-old ma
 
 
 * Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+
 ```{r, "Load, tidy, and wrangle Problem 2 Accelerometer data"}
 accel_data =
   read_csv(file = "./data/accel_data.csv") %>% #Read in csv file
@@ -110,18 +111,22 @@ accel_data =
               .fn = ~ str_replace(string = .x, "activity_", "minute_")) %>% #Renamed all activity_* variables to minute_*
   mutate(type_of_day = recode(day, "Monday" = "Weekday", "Tuesday" = "Weekday", "Wednesday" = "Weekday", "Thursday" = "Weekday", "Friday" = "Weekday", "Saturday" = "Weekend", "Sunday" = "Weekend" )) %>% #Create new variable indicating weekday vs weekend
   select(week, day_id, day, type_of_day, everything()) #Reorganize columns so minute_* are at the end
-
-
-accel_data
 ```
 
-* Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
-```{r, "Table with aggregated daily total accelerometer activity"}
-accel_agg = accel_data %>%
-  mutate(daily_activity = sum(minute_1:minute_1440)) %>%
-  select(week, day_id, day, type_of_day, daily_activity, everything()) #Reorganize columns so minute_* are at the end
+The dataset accel_data contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single product from an instacart order.
 
-accel_agg
+Key variables include identifiers for each user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, as well as number of days since prior order. There are also several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether or not the item has been ordered by the specific  user in the past.
+
+In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
+
+
+* Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r, "Table with aggregated daily total accelerometer activity"}
+accel_data %>%
+  mutate(daily_activity = rowSums(accel_data[ , c(5:1444)], na.rm = TRUE)) %>%
+  select(week, day_id, day, type_of_day, daily_activity) %>%
+  knitr::kable()
 ```
 
 
