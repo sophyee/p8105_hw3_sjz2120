@@ -134,7 +134,7 @@ Other key variables include `minute_*` (renamed from `activity_*`) and ranging f
 All of these variables are doubles, with the exception of the `day` and `type_of_day` variables which are character variable types.
 
 
-### Table aggregating total daily activity per each day (`accel_data`)
+### Table with aggregated total daily activity per each day (`accel_data`)
 
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
@@ -160,12 +160,13 @@ accel_pivot_data =
     names_to = "minute", 
     names_prefix = "minute_",
     values_to = "activity_level") %>% #Create new dataframe from accel_data that has activity_level as it's own variable
-  mutate(hour = as.numeric(minute)/60)
+  mutate(hour = as.numeric(minute)/60, day_id = as.character(day_id))
 
 
-daily_activity_plot =
-  ggplot(accel_pivot_data, aes(x = hour, y = activity_level, group = interaction(day_id, day), color = day)) +
+
+ggplot(accel_pivot_data, aes(x = hour, y = activity_level, color = day)) +
   geom_smooth(se = FALSE)
+
 
 
 ```
@@ -182,12 +183,32 @@ data("ny_noaa")
 noaa = 
   ny_noaa %>% 
   as_tibble(ny_noaa)
+
+noaa
 ```
 
 
 ### Describing the NY NOAA (`noaa`) dataset
 
-The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
+**Background**: The National Oceanic and Atmospheric Association (NOAA) provides public access to some weather data, including the GHCN (Global Historical Climatology Network)-Daily database of summary statistics from weather stations around the world. GHCN-Daily contains records from over 100,000 stations in 180 countries and territories. NCEI provides numerous daily variables, including maximum and minimum temperature, total daily precipitation, snowfall, and snow depth; however, about one half of the stations report precipitation only. Both the record length and period of record vary by station and cover intervals ranging from less than a year to more than 175 years.
+
+**Describing the Dataset**: The newly loaded `noaa` dataset contains a total of `r nrow(noaa)` rows and `r ncol(noaa)` columns, with each row representing a single day of observations/weather data for a specific weather station. There are a total of `r noaa %>% count(id) %>% nrow()` unique weather stations from where weather data was collected, and the dates of the observations range from `r noaa %>% pull(date) %>% min()` to `r noaa %>% pull(date) %>% min()`.
+
+Key identifier variables include `id` (the weather station ID associated with the specific row of data and `date` (date of observation). Other key variables included the various weather measures such as `prcp` (Precipitation (tenths of mm)), `snow` (Snowfall (mm)), `snwd` (Snow depth (mm)), `tmax` (Maximum temperature (tenths of degrees C)), and `tmin` (Minimum temperature (tenths of degrees C)).
+
+Some of the rows/observations have missing values. In fact, let's see how many missing values there are for each weather data variable:
+
+* There are `r sum(is.na(noaa$prcp))` observations with missing values for the variable `prcp` (Precipitation (tenths of mm))
+
+* There are `r sum(is.na(noaa$snow))` observations with missing values for the variable `snow` (Snowfall (mm))
+
+* There are `r sum(is.na(noaa$snwd))` observations with missing values for the variable `snwd` (Snow depth (mm))
+
+* There are `r sum(is.na(noaa$tmax))` observations with missing values for the variable `tmax` (Maximum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmax`!
+
+* There are `r sum(is.na(noaa$tmin))` observations with missing values for the variable `tmin` (Minimum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmin`!
+
+* There are no observations with missing values for the variables `id` and `date` (thankfully!)
 
 
 ### Data cleaning the NY NOAA (`noaa`) dataset
