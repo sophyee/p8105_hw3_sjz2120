@@ -147,8 +147,10 @@ Traditional analyses of accelerometer data focus on the total activity over the 
 
 ```{r, Table_of_aggregated_daily_accel_activity"}
 accel_data %>%
-  mutate(daily_activity = rowSums(accel_data[ , c(5:1444)], na.rm = TRUE)) %>%
-  select(week, day_id, day, type_of_day, daily_activity) %>%
+  group_by(week, day) %>%
+  summarise(daily_activity = sum(activity)) %>%
+  pivot_wider(names_from = day,
+              values_from = daily_activity) %>%
   knitr::kable()
 ```
 
@@ -159,26 +161,19 @@ accel_data %>%
 
 Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
+We use `minutes_after_midnight`/60 as the x variable, since we want to show time on a scale of hours and not minutes; our y-variable is activity. We can then make a 24-hour activity time course plot using geom_line:
+
 ```{r}
-accel_pivot_data = 
-  pivot_longer(
-    accel_data, 
-    minute_1:minute_1440,
-    names_to = "minute", 
-    names_prefix = "minute_",
-    values_to = "activity_level") %>% #Create new dataframe from accel_data that has activity_level as it's own variable
-  mutate(hour = as.numeric(minute)/60, day_id = as.character(day_id))
-
-
-
-ggplot(accel_pivot_data, aes(x = hour, y = activity_level, color = day)) +
-  geom_smooth(se = FALSE)
-
-
-
+accel_data %>%
+  ggplot(aes(x = minutes_after_midnight/60, y = activity)) + # Divide minutes_after_midnight by 60 to get time in hour units
+  geom_line(aes(color = day), alpha = 0.5, se = FALSE) +
+  labs(title = "24-hour time course plot of activity, by day of the week",
+       x = "Hour (after midnight)",
+       y = "Activity Level (accelerometer measurements)") +
+  theme_classic()
 ```
 
-
+From this graph, we can see that there is generally low/much less activity from hours 0 to 5 (most likely because the subject is sleeping). Activity levels are relatively higher from hours 5 to 19 (probably when the subject is awake), and activity levels generally seem to peak from hours 20 to 22 for most days of the week, with the exception of Sunday (Sunday peak activity hours seem to be around 10 to 11 hours after midnight). Activity levels for all days begin to drop after hour 22, and continue to be relatively low until the next day.
 
 # Problem 3
 This problem uses the NY NOAA data. DO NOT include this dataset in your local data directory; instead, load the data from the `p8105.datasets` package using:
