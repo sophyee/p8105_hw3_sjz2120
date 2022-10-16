@@ -235,22 +235,24 @@ snow_count$snow[1]
 
 ### Two-panel plot of average max temperature in January and July, in each station across years (`noaa` dataset)
 
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. First we get the data ready to be used in a ggplot by filtering so only observations made in January and July are kept, and creating a new variable of average max temperatures (grouped by station id, year, and month). Then we use ggplot to create a two-panel plot.
+
 ```{r Plotting-average-max-temps-Jan-July}
 noaa %>% 
-  filter(month == c("January", "July")) %>%
-  drop_na(tmax) %>%
-  group_by(id, year, month) %>%
-  summarise(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
-  ggplot(aes(x = year, y = mean_tmax), group = id) +
-  geom_point() +
-  facet_grid(. ~ month) +
+  filter(month == c("January", "July")) %>% # Only keep data collected in January and July
+  drop_na(tmax) %>% # Drop observations missing tmax data
+  group_by(id, year, month) %>% # Group data by id, year, and month
+  summarise(mean_tmax = mean(tmax, na.rm = TRUE)) %>% # Create new variable for average max temperatures, grouped by station id, year, and month
+  ggplot(aes(x = year, y = mean_tmax), group = id) + # Create a scatterplot of average max temperatures in each station across the years
+  geom_point(size = 0.5) +
+  facet_grid(. ~ month) + # Two-panel plot separating January and July
   labs(title = "Average max temperature in each station across the years (January vs July)") +
   xlab("Year") +
   ylab("Average max temperature (in degrees Celsius)")
   
 ```
 
+It seems pretty clear that although there are variations in max temperature within each year, across the years, and across different weather stations, there is generally a clear average max temperature difference between observations made in January vs July, with temperatures in January hovering around 15-20 degrees Celsius lower than temperatures in July for all years. Most of the January average max temperatures fall below 10 degrees Celsius; while most of the July average max temperatures fall above 20 degrees Celsius. There are some outliers in both the January and July data in a few years which hover between 10-20 degrees Celsius. It's difficult to tell any overall trends in average max temperature across the years from these plots, if only because there is still quite a bit of variation within each year and between years.
 
 ### Two-panel plot of tmax and tmin (`noaa` dataset)
 
@@ -264,14 +266,6 @@ Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a
 
 Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 ```{r}
-noaa %>% 
-  count(aisle) %>% 
-  filter(n > 10000) %>% 
-  mutate(aisle = fct_reorder(aisle, n)) %>% 
-  ggplot(aes(x = aisle, y = n)) + 
-  geom_point() + 
-  labs(title = "Number of items ordered in each aisle") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ```
 
