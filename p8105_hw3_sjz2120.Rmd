@@ -302,6 +302,7 @@ Now we can combine the previous two plots, and create a two-panel plot showing (
 
 
 ```{r}
-(tmax_tmin + snowfall)
+tmax_tmin_snowfall = (tmax_tmin + snowfall)
+tmax_tmin_snowfall
 ```
 
