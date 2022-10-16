@@ -134,7 +134,7 @@ accel_data
 
 The cleaned and tidied dataset `accel_data` contains a total of `r nrow(accel_data)` rows/observations and `r ncol(accel_data)` columns/variables, with each row representing a single minute of accelerometer data for the subject for a total of `r nrow(accel_data)` minutes for which they had accelerometer observation data. Each row/observation has a week identifier and day identifier for when the observation was taken; as well as a `minutes_after_midnight` identifier (the number of minutes after midnight when the observation was made).
 
-Key variables include `week` (the week during which the observation was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week during which the observation was collected); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend).
+Key variables include `week` (the week during which the observation was collected), `day_id` (an identifier for each of the 35 days that data was collected for), and `day` (a label name for the day of the week during which the observation was collected); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend).
 
 Other key variables include `minutes_after_midnight` (derived from the previous 1440 `activity_*` variables). The variable `minutes_after_midnight` is the number of minutes from midnight when the observation was collected. Another key variable `activity` describes the amount of activity recorded by the accelerometer for that minute of observation.
 
@@ -145,6 +145,8 @@ All of these variables are doubles, with the exception of the `day` and `type_of
 
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
+We create a new variable for total activity for each day called `daily_activity` below, and create a table showing these total across the weeks/days of the week.
+
 ```{r, Table_of_aggregated_daily_accel_activity"}
 accel_data %>%
   group_by(week, day) %>%
@@ -154,7 +156,7 @@ accel_data %>%
   knitr::kable()
 ```
 
-**In general, it seems like for each week total daily activity increases from Monday to Friday, and decreases/drops slightly on the weekend (Saturday and Sunday). There also seem to be a few days (without any noticeable patterns as to which days, except for the two Saturdays in weeks 4 and 5) where daily activity is significantly lower compared to other days.**
+**In general it seems like across each week, total daily activity increases from Monday to Friday before decreasing/dropping slightly on the weekend (Saturday and Sunday). There also seem to be a few days (without any noticeable patterns as to which days, except for the two Saturdays in weeks 4 and 5) where daily activity is significantly lower compared to other days.**
 
 
 ### Single-panel plot with 24-hour activity time courses for each day (`accel_data`)
@@ -166,14 +168,14 @@ We use `minutes_after_midnight`/60 as the x variable, since we want to show time
 ```{r}
 accel_data %>%
   ggplot(aes(x = minutes_after_midnight/60, y = activity)) + # Divide minutes_after_midnight by 60 to get time in hour units
-  geom_line(aes(color = day), alpha = 0.5, se = FALSE) +
+  geom_line(aes(color = day), alpha = 0.3, se = FALSE) +
   labs(title = "24-hour time course plot of activity, by day of the week",
        x = "Hour (after midnight)",
        y = "Activity Level (accelerometer measurements)") +
   theme_classic()
 ```
 
-From this graph, we can see that there is generally low/much less activity from hours 0 to 5 (most likely because the subject is sleeping). Activity levels are relatively higher from hours 5 to 19 (probably when the subject is awake), and activity levels generally seem to peak from hours 20 to 22 for most days of the week, with the exception of Sunday (Sunday peak activity hours seem to be around 10 to 11 hours after midnight). Activity levels for all days begin to drop after hour 22, and continue to be relatively low until the next day.
+From this graph, we can see that there is generally low/much less activity from hours 0 to 5 (most likely because the subject is sleeping). Activity levels are relatively higher from hours 5 to 19 (probably when the subject is awake), and activity levels generally seem to peak from hours 20 to 22 for most days of the week, with the exception of Sunday; Sunday peak activity hours seem to be around 10 to 11 hours after midnight. Activity levels for all days begin to drop after hour 22, and continue to be relatively low until the next day.
 
 # Problem 3
 This problem uses the NY NOAA data. DO NOT include this dataset in your local data directory; instead, load the data from the `p8105.datasets` package using:
@@ -182,8 +184,7 @@ This problem uses the NY NOAA data. DO NOT include this dataset in your local da
 library(p8105.datasets)
 data("ny_noaa")
 
-noaa = 
-  ny_noaa
+noaa = ny_noaa
 ```
 
 
@@ -197,22 +198,22 @@ Key identifier variables include `id` (the weather station ID associated with th
 
 Some of the rows/observations have missing values. In fact, let's see how many missing values there are for each weather data variable:
 
-* There are `r sum(is.na(noaa$prcp))` observations (proportion: `r sum(is.na(noaa$prcp))/nrow(noaa)`) with missing values for the variable `prcp` (Precipitation (tenths of mm))
+* There are `r sum(is.na(noaa$prcp))` observations (proportion: `r sum(is.na(noaa$prcp))/nrow(noaa)` of total observations) with missing values for the variable `prcp` (Precipitation (tenths of mm))
 
-* There are `r sum(is.na(noaa$snow))` observations (proportion: `r sum(is.na(noaa$snow))/nrow(noaa)`) with missing values for the variable `snow` (Snowfall (mm))
+* There are `r sum(is.na(noaa$snow))` observations (proportion: `r sum(is.na(noaa$snow))/nrow(noaa)` of total observations) with missing values for the variable `snow` (Snowfall (mm))
 
-* There are `r sum(is.na(noaa$snwd))` observations (proportion: `r sum(is.na(noaa$snwd))/nrow(noaa)`) with missing values for the variable `snwd` (Snow depth (mm))
+* There are `r sum(is.na(noaa$snwd))` observations (proportion: `r sum(is.na(noaa$snwd))/nrow(noaa)` of total observations) with missing values for the variable `snwd` (Snow depth (mm))
 
-* There are `r sum(is.na(noaa$tmax))` observations (proportion: `r sum(is.na(noaa$tmax))/nrow(noaa)`) with missing values for the variable `tmax` (Maximum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmax`!
+* There are `r sum(is.na(noaa$tmax))` observations (proportion: `r sum(is.na(noaa$tmax))/nrow(noaa)` of total observations) with missing values for the variable `tmax` (Maximum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmax`!
 
-* There are `r sum(is.na(noaa$tmin))` observations (proportion: `r sum(is.na(noaa$tmin))/nrow(noaa)`) with missing values for the variable `tmin` (Minimum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmin`!
+* There are `r sum(is.na(noaa$tmin))` observations (proportion: `r sum(is.na(noaa$tmin))/nrow(noaa)` of total observations) with missing values for the variable `tmin` (Minimum temperature (tenths of degrees C)) -- that's nearly half of all observations that have missing values for `tmin`!
 
 * There are no observations with missing values for the variables `id` and `date` (thankfully!)
 
 
 ### Data cleaning the NY NOAA (`noaa`) dataset
 
-Do some data cleaning. First we create separate variables for year, month, and dayf. We also ensure that observations for temperature, precipitation, and snowfall are given in reasonable units by dividing the values for the temperature variables by 10 (changing from tenths of degree Celsius to degrees Celcius), and by dividing the values for precipitation and snowfall by 10 (changing from mm to cm).
+Do some data cleaning. First we create separate variables for year, month, and day. We also ensure that observations for temperature, precipitation, and snowfall are given in reasonable units by dividing the values for the temperature variables by 10 (changing from tenths of degree Celsius to degrees Celcius), dividing the values for precipitation by 10 (changing from tenths of mm to mm), and dividing the values for snowfall by 10 (changing from mm to cm).
 
 ```{r}
 noaa = noaa %>%
@@ -220,11 +221,11 @@ noaa = noaa %>%
   mutate(year = lubridate::year(date),
          month = lubridate::month(date, label = TRUE, abbr = FALSE),
          day = lubridate::day(date)) %>% # Creating separate variables for year, month, and day
-  mutate(prcp = prcp/10,
+  mutate(prcp = prcp/10, # Ensuring reasonable units for the weather data variables
          snow = snow/10,
          snwd = snwd/10,
          tmax = as.numeric(tmax) / 10,
-         tmin = as.numeric(tmin) / 10) %>% # Ensuring reasonable units for the weather data variables
+         tmin = as.numeric(tmin) / 10) %>% 
   select(id, year, month, day, everything(), -date) # Rearranging variable order so the weather data variables come last
 
 noaa
@@ -236,8 +237,7 @@ snow_count = noaa %>% count(snow) %>% arrange(desc(n))
 snow_count$snow[1]
 ```
 
-**For snowfall, the most commonly observed values seem to be `r snow_count$snow[1]` followed closely by `r snow_count$snow[2]`, probably because there are many weather station locations where it doesn't snow at all (basically, anywhere where the climate is mild/warm year-round or doesn't support snowfall).**
-
+For snowfall, the most commonly observed values seem to be `r snow_count$snow[1]` cm followed closely by `r snow_count$snow[2]`, probably because there are many weather station locations where it doesn't snow at all (basically, anywhere where the climate is mild/warm year-round or doesn't support snowfall).
 
 
 ### Two-panel plot of average max temperature in January and July, in each station across years (`noaa` dataset)
@@ -260,7 +260,9 @@ noaa %>%
   theme_classic()
 ```
 
-It seems pretty clear that although there are variations in max temperature within each year, across the years, and across different weather stations, there is generally a clear average max temperature difference between observations made in January vs July, with temperatures in January hovering around 15-20 degrees Celsius lower than average max temperatures in July across the years. Most of the January average max temperatures fall below 10 degrees Celsius; while most of the July average max temperatures fall above 20 degrees Celsius. There are some outliers at both extremes for both the January and July data across the years; for instance, in a few years both months have max average temperatures which hover between 10-20 degrees Celsius (relatively high for January and low for July). It's difficult to tell any overall trends in average max temperature across the years from these plots, if only because there is still quite a bit of variation within each year and between years.
+It seems pretty clear that although there are variations in max temperature within each year, across the years, and across different weather stations, there is generally a clear average max temperature difference between observations made in January vs July, with temperatures in January hovering around 15-20 degrees Celsius lower than average max temperatures in July across the years. Most of the January average max temperatures fall below 10 degrees Celsius; while most of the July average max temperatures fall above 20 degrees Celsius.
+
+There are some outliers at both extremes for both the January and July data across the years; for instance, in a few years both months have max average temperatures which hover between 10-20 degrees Celsius (relatively high for January and low for July). It's difficult to tell any overall trends in average max temperature across the years from these plots, if only because there is still quite a bit of variation within each year and between years.
 
 
 ### Plot of tmax and tmin (`noaa` dataset)
