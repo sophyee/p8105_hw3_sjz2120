@@ -115,21 +115,28 @@ Loading, tidying, and otherwise wrangleingthe data. The final dataset `accel_dat
 
 ```{r, Load_Problem2_accelerometer_data"}
 accel_data =
-  read_csv(file = "./data/accel_data.csv") %>% #Read in csv file
+  read_csv(file = "./data/accel_data.csv") %>% # Read in csv file
   janitor::clean_names() %>% #Basic clean of dataset
-  rename_with(.cols = starts_with("activity_"),
-              .fn = ~ str_replace(string = .x, "activity_", "minute_")) %>% #Renamed all activity_* variables to minute_*
-  mutate(type_of_day = recode(day, "Monday" = "Weekday", "Tuesday" = "Weekday", "Wednesday" = "Weekday", "Thursday" = "Weekday", "Friday" = "Weekday", "Saturday" = "Weekend", "Sunday" = "Weekend" )) %>% #Create new variable indicating weekday vs weekend
-  select(week, day_id, day, type_of_day, everything()) #Reorganize columns so minute_* are at the end
+  pivot_longer(activity_1:activity_1440, # Pivot longer to condense the activity variables into a single new variable, but still keep all of the observations and variable indicators
+               names_to = "minutes_after_midnight",
+               names_prefix = "activity_",
+               values_to = "activity") %>%
+  mutate(type_of_day = if_else((day == "Saturday" | day == "Sunday"), "Weekend", "Weekday"),
+         day = factor(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), 
+                      ordered = TRUE),
+         minutes_after_midnight = as.numeric(minutes_after_midnight)) %>%
+  select(week, day_id, day, type_of_day, everything()) # Reorder the variables so day is next to type_of_day
+
+accel_data
 ```
 
 ### Describing the cleaned & wrangled `accel_data` dataset
 
-The cleaned and tidied dataset `accel_data` contains a total of `r nrow(accel_data)` rows and `r ncol(accel_data)` columns, with each row representing a single day of accelerometer data (for each minute) for the subject. There are a total of 5 weeks of data, with 7 days of data per week for a total of `r nrow(accel_data)` total days (days when accelerometer observations occured), with accelerometer data for each minute of the day.
+The cleaned and tidied dataset `accel_data` contains a total of `r nrow(accel_data)` rows/observations and `r ncol(accel_data)` columns/variables, with each row representing a single minute of accelerometer data for the subject for a total of `r nrow(accel_data)` minutes for which they had accelerometer observation data. Each row/observation has a week identifier and day identifier for when the observation was taken; as well as a `minutes_after_midnight` identifier (the number of minutes after midnight when the observation was made).
 
-Key variables include `week` (the week during which the row data was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend).
+Key variables include `week` (the week during which the observation was collected), `day_id` (an identifier for each of the `r nrow(accel_data)` days that data was collected for), and `day` (a label name for the day of the week during which the observation was collected); as well as a newly created variable `type_of_day` (which indicates whether the observation happened on a weekday vs weekend).
 
-Other key variables include `minute_*` (renamed from `activity_*`) and ranging from `minute_1` to `minute_1440`. The variables `minute_*` are the activity counts for each minute of a 24-hour day starting at midnight, hence why there are a total of 1440 `minute_*` variables (because there are 1440 minutes in a day).
+Other key variables include `minutes_after_midnight` (derived from the previous 1440 `activity_*` variables). The variable `minutes_after_midnight` is the number of minutes from midnight when the observation was collected. Another key variable `activity` describes the amount of activity recorded by the accelerometer for that minute of observation.
 
 All of these variables are doubles, with the exception of the `day` and `type_of_day` variables which are character variable types.
 
@@ -145,7 +152,7 @@ accel_data %>%
   knitr::kable()
 ```
 
-**There don't seem to be any noticeable trends in the aggregated amount of daily activity (`daily_activity`). However, there do seem to be a few days (without any noticeable patterns as to which days, except for the two Saturdays in weeks 4 and 5) where daily activity is significantly lower compared to other days.**
+**In general, it seems like for each week total daily activity increases from Monday to Friday, and decreases/drops slightly on the weekend (Saturday and Sunday). There also seem to be a few days (without any noticeable patterns as to which days, except for the two Saturdays in weeks 4 and 5) where daily activity is significantly lower compared to other days.**
 
 
 ### Single-panel plot with 24-hour activity time courses for each day (`accel_data`)
@@ -265,7 +272,7 @@ It seems pretty clear that although there are variations in max temperature with
 
 Make a plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option). 
 
-```{r}
+```{r tmax_tmin_plot}
 tmax_tmin = noaa %>% 
   ggplot(aes(x = tmin, y = tmax)) + 
   geom_hex() +
@@ -281,10 +288,10 @@ tmax_tmin
 ### Plot of snowfall distribution, separately by year (`noaa` dataset)
 
 Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
-```{r}
+```{r snowfall_by_year_plot}
 snowfall = noaa %>% 
-  filter(snow > 0 & snow < 100) %>%
-  mutate(year = as.character(year)) %>% # Only keep snowfall values greater than 0 and less than 100
+  filter(snow > 0 & snow < 100) %>% # Only keep snowfall values greater than 0 and less than 100
+  mutate(year = as.character(year)) %>% # Change year to character variable, so we can use it as a categorical variable in geom_density_ridges
   ggplot(aes(x = snow, y = year)) +
   geom_density_ridges() +
   labs(title = "Snowfall distribution by year",
@@ -301,7 +308,7 @@ snowfall
 Now we can combine the previous two plots, and create a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 
-```{r}
+```{r two-panel-tmax-tmin-snowfall-plot}
 tmax_tmin_snowfall = (tmax_tmin + snowfall)
 tmax_tmin_snowfall
 ```
