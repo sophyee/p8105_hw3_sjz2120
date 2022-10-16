@@ -213,13 +213,13 @@ Some of the rows/observations have missing values. In fact, let's see how many m
 
 ### Data cleaning the NY NOAA (`noaa`) dataset
 
-Do some data cleaning. First we create separate variables for year, month, and dayf. We also ensure that observations for temperature, precipitation, and snowfall are given in reasonable units by multiplying the values for the temperature variables by 10 (changing from tenths of degree Celsius to degrees Celcius), and by dividing the values for precipitation and snowfall by 10 (changing from mm to cm).
+Do some data cleaning. First we create separate variables for year, month, and dayf. We also ensure that observations for temperature, precipitation, and snowfall are given in reasonable units by dividing the values for the temperature variables by 10 (changing from tenths of degree Celsius to degrees Celcius), and by dividing the values for precipitation and snowfall by 10 (changing from mm to cm).
 
 ```{r}
 noaa = noaa %>%
   janitor::clean_names() %>%
   mutate(year = lubridate::year(date), month = lubridate::month(date, label = TRUE, abbr = FALSE),  day = lubridate::day(date)) %>% # Creating separate variables for year, month, and day
-  mutate(prcp = prcp/10, snow = snow/10, snwd = snwd/10, tmax = 10*as.numeric(tmax), tmin = 10*as.numeric(tmin)) %>% # Ensuring reasonable units for the weather data variables
+  mutate(prcp = prcp/10, snow = snow/10, snwd = snwd/10, tmax = as.numeric(tmax) / 10, tmin = as.numeric(tmin) / 10) %>% # Ensuring reasonable units for the weather data variables
   select(id, date, year, month, day, everything()) # Rearranging variable order so the weather data variables come last
 
 noaa
@@ -236,14 +236,42 @@ snow_count$snow[1]
 ### Two-panel plot of average max temperature in January and July, in each station across years (`noaa` dataset)
 
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+```{r Plotting-average-max-temps-Jan-July}
+noaa %>% 
+  filter(month == c("January", "July")) %>%
+  drop_na(tmax) %>%
+  group_by(id, year, month) %>%
+  summarise(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
+  ggplot(aes(x = year, y = mean_tmax), group = id) +
+  geom_point() +
+  facet_grid(. ~ month) +
+  labs(title = "Average max temperature in each station across the years (January vs July)") +
+  xlab("Year") +
+  ylab("Average max temperature (in degrees Celsius)")
+  
+```
 
 
 ### Two-panel plot of tmax and tmin (`noaa` dataset)
 
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option)
+```{r}
+
+```
 
 
 ### Two-panel plot of snowfall distribution, separately by year (`noaa` dataset)
 
 Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+```{r}
+noaa %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(aisle = fct_reorder(aisle, n)) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() + 
+  labs(title = "Number of items ordered in each aisle") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
 
