@@ -181,10 +181,7 @@ library(p8105.datasets)
 data("ny_noaa")
 
 noaa = 
-  ny_noaa %>% 
-  as_tibble(ny_noaa)
-
-noaa
+  ny_noaa
 ```
 
 
@@ -233,7 +230,7 @@ noaa
 ### Most common observed snowfall totals
 
 ```{r Finding_most_common_snowfall}
-snow_count <- noaa %>% count(snow) %>% arrange(desc(n))
+snow_count = noaa %>% count(snow) %>% arrange(desc(n))
 snow_count$snow[1]
 ```
 
@@ -264,9 +261,9 @@ noaa %>%
 It seems pretty clear that although there are variations in max temperature within each year, across the years, and across different weather stations, there is generally a clear average max temperature difference between observations made in January vs July, with temperatures in January hovering around 15-20 degrees Celsius lower than average max temperatures in July across the years. Most of the January average max temperatures fall below 10 degrees Celsius; while most of the July average max temperatures fall above 20 degrees Celsius. There are some outliers at both extremes for both the January and July data across the years; for instance, in a few years both months have max average temperatures which hover between 10-20 degrees Celsius (relatively high for January and low for July). It's difficult to tell any overall trends in average max temperature across the years from these plots, if only because there is still quite a bit of variation within each year and between years.
 
 
-### Two-panel plot of tmax and tmin (`noaa` dataset)
+### Plot of tmax and tmin (`noaa` dataset)
 
-Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option). 
+Make a plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option). 
 
 ```{r}
 tmax_tmin = noaa %>% 
@@ -281,16 +278,30 @@ tmax_tmin
 ```
 
 
-### Two-panel plot of snowfall distribution, separately by year (`noaa` dataset)
+### Plot of snowfall distribution, separately by year (`noaa` dataset)
 
 Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 ```{r}
-noaa %>% 
-  filter(snow > 0, snow < 100)  %>% # Only keep snowfall values greater than 0 and less than 100
-  drop_na(snow) %>%
-  group_by(id, year, month) %>% # Group data by id, year, and month
-  summarise(snow = snow) %>% # Create new variable for average max temperatures, grouped by station id, year, and month
-  ggplot(aes(x = snow, fill = year)) + # Create a scatterplot of average max temperatures in each station across the years
-  geom_density(alpha = .4, adjust = .5, color = "blue")
+snowfall = noaa %>% 
+  filter(snow > 0 & snow < 100) %>%
+  mutate(year = as.character(year)) %>% # Only keep snowfall values greater than 0 and less than 100
+  ggplot(aes(x = snow, y = year)) +
+  geom_density_ridges() +
+  labs(title = "Snowfall distribution by year",
+       caption = "For snowfall values greater than 0 cm and less than 100 cm",
+       x = "Snowfall (cm)",
+       y = "Year") +
+  theme_classic()
+
+snowfall
+```
+
+### Two-panel plot of tmax vs tmin and snowfall distribution by year
+
+Now we can combine the previous two plots, and create a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+
+```{r}
+(tmax_tmin + snowfall)
 ```
 
